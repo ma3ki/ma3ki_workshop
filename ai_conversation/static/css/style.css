@@ -1,0 +1,198 @@
+/* --- 警告バナー共通スタイル --- */
+.error-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid #ffeeba;
+    z-index: 3000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* --- 基本レイアウト (PC版) --- */
+body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    margin: 0; padding: 0; background: #f8f9fa; color: #333; 
+    height: 100vh; height: 100dvh;
+    display: flex; overflow: hidden; position: relative;
+}
+
+.left-pane {
+    flex: 1.2; display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; background: white; border-right: 1px solid #e0e0e0;
+    padding-top: 30px; box-sizing: border-box; z-index: 10; position: relative;
+}
+
+#avatar { width: 450px; max-width: 95%; height: auto; object-fit: contain; transition: opacity 0.2s ease; }
+.controls { margin-top: 15px; margin-bottom: 20px; z-index: 100; }
+
+button {
+    font-size: 18px; font-weight: bold; padding: 14px 28px; cursor: pointer;
+    border-radius: 30px; border: none; background: #ff69b4; color: white;
+    transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+    white-space: nowrap;
+}
+button:hover { background: #ff4da6; transform: translateY(-2px); }
+button:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+/* デバッグモードの入力エリア設定 */
+.debug-input-area {
+    width: 95%;
+    max-width: 500px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+    padding: 0 10px;
+}
+
+.debug-input-area input {
+    min-width: 0; /* flexアイテムが親を突き破るのを防ぐ */
+    flex: 1;
+}
+
+.debug-input-area button {
+    background: #ff69b4;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0; /* ボタンが潰れないように固定 */
+    margin-left: 5px;
+}
+
+/* クレジット (PCデフォルト) */
+.credit { 
+    margin-top: auto; padding-bottom: 20px; font-size: 11px; color: #888; 
+    text-align: center; width: 100%; z-index: 150;
+}
+
+.right-pane { flex: 1; display: flex; flex-direction: column; background: #f0f2f5; padding: 20px; overflow-y: auto; box-sizing: border-box; z-index: 20; }
+.chat-container { display: flex; flex-direction: column; gap: 20px; padding-bottom: 80px; }
+.message-pair { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.timestamp { font-size: 11px; color: #bbb; margin-bottom: 4px; font-family: monospace; }
+.ai-msg { font-weight: 600; }
+.replay-link { color: #4caf50; cursor: pointer; font-size: 13px; margin-left: 12px; border: 1px solid #4caf50; padding: 2px 8px; border-radius: 4px; }
+
+/* UI切り替えリンク & 会話初期化リンク共通スタイル */
+#ui-toggle-link, #clear-session-link {
+    position: fixed; font-size: 11px; color: #999;
+    opacity: 0.3; cursor: pointer; z-index: 2000; text-decoration: underline;
+}
+
+#ui-toggle-link { top: 10px; right: 15px; }
+
+/* 会話初期化ボタンを右下に配置 (デフォルト非表示) */
+#clear-session-link { bottom: 10px; right: 15px; display: none; }
+
+/* 画面分割(PCモード)が有効な場合に初期化ボタンを表示 */
+body.force-pc-mode #clear-session-link { display: block !important; }
+
+/* 大画面(PC)環境のデフォルト状態で表示 */
+@media (min-width: 1025px) {
+    body:not(.force-mobile-mode) #clear-session-link { display: block; }
+}
+
+/* --- スマートフォン・iPad 没入型対応 --- */
+@media (max-width: 1024px) {
+    body:not(.force-pc-mode) { flex-direction: column; }
+    body:not(.force-pc-mode) .right-pane { display: none !important; }
+    body:not(.force-pc-mode) .left-pane {
+        width: 100vw; height: 100dvh; border-right: none; position: relative;
+        padding-top: 0; justify-content: center; background: #fdfdfd; overflow: hidden;
+    }
+    body:not(.force-pc-mode) #avatar {
+        width: auto; height: 82vh; position: absolute; z-index: 1; 
+        bottom: 12%; left: 50%; transform: translateX(-50%);
+    }
+    body:not(.force-pc-mode) .controls {
+        position: absolute; bottom: 85px; z-index: 100; margin: 0;
+        width: 100%; display: flex; justify-content: center;
+    }
+    /* 没入モードでのデバッグエリア位置調整 */
+    body:not(.force-pc-mode) .debug-input-area {
+        position: absolute;
+        bottom: 150px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+    }
+    body:not(.force-pc-mode) .credit {
+        position: fixed; bottom: calc(15px + env(safe-area-inset-bottom)); 
+        width: 100%; text-align: center; display: block !important;
+        background: rgba(255, 255, 255, 0.6); padding: 4px 0; font-size: 10px;
+    }
+    /* 没入モード（会話なし）ではタイトルと初期化ボタンを非表示 */
+    body:not(.force-pc-mode) .desktop-title { display: none !important; }
+    body:not(.force-pc-mode) #clear-session-link { display: none !important; }
+}
+
+/* 手動モバイルモード (PCでもスマホ版表示) */
+body.force-mobile-mode .right-pane { display: none !important; }
+body.force-mobile-mode .left-pane { width: 100vw !important; height: 100dvh !important; position: relative !important; padding-top: 0 !important; border-right: none !important; }
+body.force-mobile-mode #avatar { width: auto !important; height: 82vh !important; position: absolute !important; bottom: 12% !important; left: 50% !important; transform: translateX(-50%) !important; }
+body.force-mobile-mode .controls { position: absolute !important; bottom: 85px !important; width: 100% !important; display: flex !important; justify-content: center !important; }
+/* 手動モバイルモードでのデバッグエリア */
+body.force-mobile-mode .debug-input-area { position: absolute !important; bottom: 150px !important; left: 50% !important; transform: translateX(-50%) !important; width: 90% !important; }
+body.force-mobile-mode .credit { 
+    position: fixed !important; bottom: 15px !important; width: 100% !important; 
+    text-align: center !important; display: block !important; background: rgba(255, 255, 255, 0.6) !important;
+}
+body.force-mobile-mode .desktop-title { display: none !important; }
+body.force-mobile-mode #clear-session-link { display: none !important; }
+
+/* 手動PCモード強制 (スマホで会話ありの分割表示) */
+body.force-pc-mode { flex-direction: row !important; }
+body.force-pc-mode .right-pane { display: flex !important; flex: 1 !important; }
+body.force-pc-mode .left-pane { 
+    width: 60% !important; /* スマホ分割時は少し広めに確保 */
+    flex: none !important; 
+    height: 100dvh !important; 
+    border-right: 1px solid #e0e0e0 !important; 
+    position: static !important; 
+    padding-top: 10px !important; 
+    justify-content: space-evenly !important; /* 要素を均等に配置して重なりを防ぐ */
+}
+body.force-pc-mode #avatar { 
+    width: auto !important; 
+    max-width: 90% !important; 
+    height: auto !important; 
+    max-height: 50vh !important; /* 画像が大きすぎてボタンを消さないように制限 */
+    position: static !important; 
+    transform: none !important; 
+    flex-shrink: 1 !important;
+}
+body.force-pc-mode .debug-input-area {
+    position: static !important;
+    transform: none !important;
+    width: 95% !important;
+    margin: 10px 0 !important;
+}
+body.force-pc-mode .controls { position: static !important; margin: 0 !important; width: auto !important; }
+
+/* 会話ありモードではタイトルと初期化ボタンを表示 */
+body.force-pc-mode .desktop-title { 
+    display: block !important; 
+    position: static !important; 
+    width: 100%;
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 5px !important;
+}
+
+body.force-pc-mode #clear-session-link { display: block !important; bottom: calc(10px + env(safe-area-inset-bottom)) !important; }
+
+body.force-pc-mode .credit { 
+    position: absolute !important; bottom: calc(5px + env(safe-area-inset-bottom)) !important; 
+    left: 0 !important; width: 60% !important; background: transparent !important;
+    padding-bottom: 5px !important;
+}

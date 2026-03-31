@@ -56,6 +56,7 @@ async function init() {
             });
         }
 
+        setupDebugMenu();
         checkSpeechSupport();
         console.log(`System Initialized (Character: ${CONFIG.avatar_set})`);
         blinkLoop();
@@ -63,15 +64,52 @@ async function init() {
 }
 window.onload = init;
 
+function setupDebugMenu() {
+    const menu = CONFIG.debug_menu;
+    if (!menu) return;
+
+    const llmProv = document.getElementById("debug-llm-provider");
+    const llmModel = document.getElementById("debug-llm-model");
+    if (llmProv && llmModel) {
+        menu.llm_providers.forEach(p => llmProv.add(new Option(p, p)));
+        llmProv.onchange = () => {
+            llmModel.innerHTML = "";
+            const models = menu.llm_models[llmProv.value] || [];
+            models.forEach(m => llmModel.add(new Option(m, m)));
+        };
+        llmProv.dispatchEvent(new Event('change'));
+    }
+
+    const ttsProv = document.getElementById("debug-tts-provider");
+    if (ttsProv) menu.tts_providers.forEach(p => ttsProv.add(new Option(p, p)));
+
+    const sakSpk = document.getElementById("debug-sakura-speaker");
+    if (sakSpk && menu.sakura_speakers) {
+        menu.sakura_speakers.forEach(s => sakSpk.add(new Option(`ID: ${s}`, s)));
+    }
+
+    const edgVoi = document.getElementById("debug-edge-voice");
+    if (edgVoi && menu.edge_voices) {
+        menu.edge_voices.forEach(v => edgVoi.add(new Option(v, v)));
+    }
+}
+
 function checkSpeechSupport() {
     const talkBtn = document.getElementById("talk-btn");
     const warning = document.getElementById("browser-warning");
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         warning.style.display = "block";
-        talkBtn.innerText = "音声非対応環境です";
+        // 5秒後に自動的に非表示にする (デグレ修正)
+        setTimeout(() => {
+            warning.style.display = "none";
+        }, 5000);
+        
+        talkBtn.innerText = "音声入力非対応";
         talkBtn.disabled = true;
         document.getElementById("debug-area").style.display = "flex";
+        return false;
     }
+    return true;
 }
 
 function clearSession() {
@@ -107,7 +145,7 @@ function blinkLoop() {
 }
 
 function startVoice() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return;
+    if (!checkSpeechSupport()) return;
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = "ja-JP";
     recognition.onstart = () => {
@@ -138,7 +176,10 @@ function sendDebugText() {
 
 function resetButtons() {
     const btn = document.getElementById("talk-btn");
-    btn.innerText = "話しかける"; btn.disabled = false;
+    if (checkSpeechSupport()) {
+        btn.innerText = "話しかける"; 
+        btn.disabled = false;
+    }
 }
 
 function getTimestamp() {
@@ -170,8 +211,6 @@ function replayMessage(index) {
     if (isSpeaking) return;
     const item = historyData[index];
     document.getElementById("talk-btn").disabled = true;
-    
-    // エラーメッセージ（ローカル/ブラウザ音声）か通常のAI回答かを判別
     if (item.isLocal) {
         playLocalAudio(item.wav, item.emotion, null, item.reply);
     } else {

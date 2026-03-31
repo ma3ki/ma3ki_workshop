@@ -5,6 +5,9 @@ let isBlinking = false;
 let mouthInterval = null;
 let resetEmotionTimeout = null;
 
+// iOS Safari対策: 単一のAudioインスタンスを使い回す
+const globalAudioInstance = new Audio();
+
 function updateAvatar() {
     const safeEmotion = currentEmotion || "trouble";
     let eyeState = isBlinking ? "close" : "open";
@@ -58,7 +61,9 @@ function playAudio(audioData, emotion, text = null) {
     try {
         currentEmotion = emotion || "normal";
         updateAvatar();
-        if (isVoiceOffMode) {
+        
+        // デバッグモードかつ実機音声が届いていない場合のみ debug.wav を再生
+        if (isVoiceOffMode && !audioData) {
             playLocalAudio("debug.wav", currentEmotion);
             return;
         }
@@ -79,7 +84,11 @@ function playAudio(audioData, emotion, text = null) {
             return;
         }
         reportAudioLog("Generated TTS Audio");
-        const audio = new Audio(audioData);
+        
+        const audio = globalAudioInstance;
+        audio.pause();
+        audio.src = audioData;
+        audio.load();
         audio.onplay = () => startMouthAnimation();
         audio.onended = () => stopMouthAnimation(true);
         audio.play().catch(() => stopMouthAnimation(true));
@@ -114,7 +123,10 @@ function playLocalAudio(url, emotion, onEndedCallback = null, text = null) {
         const audioPath = `${CONFIG.media_dir}/${url}`;
         reportAudioLog(audioPath);
         
-        const audio = new Audio(audioPath);
+        const audio = globalAudioInstance;
+        audio.pause();
+        audio.src = audioPath;
+        audio.load();
         audio.onplay = () => startMouthAnimation();
         audio.onended = () => { 
             stopMouthAnimation(onEndedCallback ? false : true); 

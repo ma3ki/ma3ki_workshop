@@ -1,24 +1,55 @@
 {
+  "//readme": {
+    "llm": {
+      "primary_provider": "メインのAIプロバイダ (sakura, groq, gemini)",
+      "primary_model": "メインのモデル名",
+      "fallback_provider": "予備のAIプロバイダ",
+      "fallback_model": "予備のモデル名",
+      "max_retry_count": "各プロバイダごとの最大リトライ回数"
+    },
+    "tts": {
+      "primary_provider": "メインの音声合成 (sakura, edge-tts, browser)",
+      "primary_speaker_id": "さくらTTS用の話者ID",
+      "fallback_provider": "予備の音声合成",
+      "edge_tts_voice": "Edge-TTS用のボイス名",
+      "edge_tts_pitch": "高さ調整",
+      "edge_tts_rate": "速度調整"
+    },
+    "fixed_audio": {
+      "retry/failure/ratelimit": { "msg": "表示文言", "wav": "wavファイル名", "emotion": "表情" }
+    }
+  },
   "ma3ki": {
     "app_title": "ITインチキエンジニア",
-    "system_prompt": "あなたは歴戦のITインフラエンジニアのまさんきさんです。回答には一つ以上IT用語を使ってください。但しブラウザの音声再生が回答を音声再生するので読み方を誤認しないような言い回しでなるべく回答してください。また回答はインチキっぽくお願いします。回答の冒頭に、必ず [normal] を付けてください。回答は2〜4文、80文字以内で。",
-    "emotion_list": ["normal"],
-    "speaker": 3,
-    "credit_text": "音声: デフォルト",
-    "max_retry_count": 1,
+    "system_prompt": "あなたは歴戦のITインフラエンジニアのまさんきさんです。回答には一つ以上IT用語を使ってください。但しブラウザの音声再生が回答を音声再生するので読み方を誤認しないような言い回しでなるべく回答してください。また回答はインチキっぽくお願いします。4分の1の確率で本当にそれっぽいインチキな回答をしてください。4分の1の確率で真面目なTCP/UDPのポート番号を提供するアプリケーション当てクイズを出してください。クイズの例、TCPの123ポートを提供するアプリケーションは？。回答の冒頭には必ず [感情] を付けてください。感情は normalは普通、troubleは困った感じ、angryは怒り、happyは嬉しい、inchikiはインチキを言っている時という意味で使ってください。例 [trouble]それは申し訳ない。回答は2〜4文、100文字以内で。",
+    "emotion_list": ["normal", "trouble", "angry", "happy", "inchiki"],
     "max_history_size": 7,
-    "use_browser_tts": true,
-    "api_retry": {
-      "msg": "APIが調子悪いです。お待ちください。",
-      "emotion": "normal"
+    "use_browser_tts": false,
+    "credit_text": "音声: Edge-TTS",
+    "llm": {
+      "primary_provider": "sakura",
+      "primary_model": "gpt-oss-120b",
+      "fallback_provider": "gemini",
+      "fallback_model": "gemini-2.5-flash",
+      "max_retry_count": 1
     },
-    "api_failure": {
-      "msg": "APIが調子悪いです。しばらく経ってからまたお試しください。",
-      "emotion": "normal"
+    "tts": {
+      "primary_provider": "edge-tts",
+      "edge_tts_voice": "ja-JP-KeitaNeural",
+      "edge_tts_pitch": "-2Hz",
+      "edge_tts_rate": "+15%"
     },
-    "api_ratelimit": {
-      "msg": "API使用回数制限を超えました。しばらく待ってから再度お試しください。",
-      "emotion": "normal"
+    "fixed_audio": {
+      "retry": { "msg": "APIが調子悪いです。お待ちください。", "wav": "api_warn.wav", "emotion": "normal" },
+      "failure": { "msg": "APIが調子悪いです。しばらく経ってからまたお試しください。", "wav": "api_failure.wav", "emotion": "normal" },
+      "ratelimit": { "msg": "API使用回数制限を超えました。しばらく待ってから再度お試しください。", "wav": "api_ratelimit.wav", "emotion": "normal" }
+    },
+    "debug_menu": {
+      "llm_providers": ["sakura", "gemini"],
+      "llm_models": { "sakura": ["gpt-oss-120b"], "gemini": ["gemini-2.5-flash"] },
+      "tts_providers": ["edge-tts", "browser", "sakura"],
+      "edge_voices": ["ja-JP-KeitaNeural", "ja-JP-NanamiNeural"],
+      "sakura_speakers": [3, 8]
     }
   }
 }

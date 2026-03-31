@@ -11,18 +11,37 @@
         現在、AI APIが混み合っているか、一時的に不安定な状態です。
     </div>
     <div id="browser-warning" class="error-banner" style="display: none;">
-        お使いのブラウザは音声入力に対応していません。Google Chrome や Microsoft Edge でのご利用をおすすめします。
+        お使いのブラウザは音声入力（マイク）に対応していません。チャット欄での操作をおすすめします。
     </div>
-    
+
     <div id="ui-toggle-link" onclick="toggleUI()">UI表示切替</div>
     <div id="clear-session-link" onclick="clearSession()">会話初期化</div>
+
     <div class="left-pane">
         <h2 class="desktop-title" id="app-title" style="color: #444; margin-bottom: 10px;"></h2>
-        <img id="avatar" src="normal_mouse_close_eye_open.webp">
-        
-        <div id="debug-area" class="debug-input-area" style="margin-top: 10px; display: none; gap: 5px;">
-            <input type="text" id="debug-text" placeholder="チャットで話す..." style="flex: 1; border-radius: 20px; border: 1px solid #ddd; padding: 5px 15px;">
-            <button onclick="sendDebugText()" style="padding: 5px 15px; font-size: 14px; cursor: pointer;">送信</button>
+        <img id="avatar" src="">
+
+        <div id="debug-area" class="debug-input-area" style="display: none; flex-direction: column; gap: 10px; margin-top: 10px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <select id="debug-llm-provider" title="LLM Provider"></select>
+                <select id="debug-llm-model" title="LLM Model"></select>
+                <select id="debug-tts-provider" title="TTS Provider"></select>
+                <select id="debug-sakura-speaker" title="Sakura Speaker"></select>
+                <select id="debug-edge-voice" title="Edge Voice"></select>
+            </div>
+            
+            <div style="display: flex; gap: 20px; font-size: 12px; color: #666; justify-content: center; align-items: center;">
+                <label>Pitch: <input type="range" id="debug-edge-pitch" min="-20" max="20" value="0"> <span id="val-pitch">0</span>Hz</label>
+                <label>Rate: <input type="range" id="debug-edge-rate" min="-50" max="50" value="0"> <span id="val-rate">0</span>%</label>
+                <label style="color: #007bff; font-weight: bold; cursor: pointer;">
+                    <input type="checkbox" id="debug-use-real-voice"> 実機音声を使用
+                </label>
+            </div>
+
+            <div style="display: flex; width: 100%; max-width: 500px;">
+                <input type="text" id="debug-text" placeholder="デバッグ用チャット..." style="flex: 1; border-radius: 20px; border: 1px solid #ddd; padding: 5px 15px;">
+                <button onclick="sendDebugText()" style="padding: 5px 15px; font-size: 14px; cursor: pointer; margin-left: 5px;">送信</button>
+            </div>
         </div>
 
         <div class="controls">
@@ -30,11 +49,17 @@
         </div>
         <div class="credit" id="credit-text" style="user-select: none;"></div>
     </div>
+
     <div class="right-pane" id="scroll-area">
         <div id="chat-history" class="chat-container"></div>
     </div>
+
     <script src="js/audio.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        document.getElementById('debug-edge-pitch').oninput = (e) => document.getElementById('val-pitch').innerText = e.target.value;
+        document.getElementById('debug-edge-rate').oninput = (e) => document.getElementById('val-rate').innerText = e.target.value;
+    </script>
 </body>
 </html>

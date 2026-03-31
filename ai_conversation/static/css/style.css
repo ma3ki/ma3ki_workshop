@@ -86,7 +86,7 @@ button:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 /* UI切り替えリンク & 会話初期化リンク共通スタイル */
 #ui-toggle-link, #clear-session-link {
     position: fixed; font-size: 11px; color: #999;
-    opacity: 0.3; cursor: pointer; z-index: 2000; text-decoration: underline;
+    opacity: 0.3; cursor: pointer; z-index: 4000; text-decoration: underline; /* 警告バナー(3000)より上に表示 */
 }
 
 #ui-toggle-link { top: 10px; right: 15px; }

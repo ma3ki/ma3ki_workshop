@@ -3,7 +3,6 @@ let historyData = [];
 let currentRetryCount = 0;
 
 function saveSession() {
-    // キャラクターごとに履歴を保存
     const storageKeyPrefix = CONFIG.avatar_set;
     localStorage.setItem(`${storageKeyPrefix}_chat_context`, JSON.stringify(chatContext));
     localStorage.setItem(`${storageKeyPrefix}_history_data`, JSON.stringify(historyData));
@@ -47,7 +46,6 @@ function createMessagePair(userText, userTime) {
 function appendAiResponse(container, aiReply, aiTime, index) {
     const responseArea = container.querySelector(".ai-response-area");
     let replayBtn = '';
-    // インデックスが有効な場合のみボタンを表示
     if (index !== -1) {
         replayBtn = `<span class=\"replay-link\" onclick=\"replayMessage(${index})\">▶ もう一度聞く</span>`;
     }
@@ -61,7 +59,6 @@ function appendAiResponse(container, aiReply, aiTime, index) {
         </div>
     `;
     responseArea.appendChild(msgBlock);
-
     const scrollArea = document.getElementById("scroll-area");
     scrollArea.scrollTop = scrollArea.scrollHeight;
 }
@@ -70,31 +67,60 @@ function toggleErrorBanner(show) {
     const banner = document.getElementById("api-error-banner");
     if (banner) {
         banner.style.display = show ? "block" : "none";
+        // 5秒後に自動的に非表示にする
+        if (show) {
+            if (window.errorBannerTimer) clearTimeout(window.errorBannerTimer);
+            window.errorBannerTimer = setTimeout(() => {
+                banner.style.display = "none";
+                window.errorBannerTimer = null;
+            }, 5000);
+        }
     }
 }
 
 async function fetchChat(userText, userTime, container = null) {
     if (!container) container = createMessagePair(userText, userTime);
     
+    // 実機音声を使用するかどうかの判定
+    const useRealVoice = document.getElementById("debug-use-real-voice")?.checked;
+    
+    const debugBody = {
+        message: userText, 
+        character_id: CONFIG.avatar_set,
+        history: chatContext,
+        skip_tts: isVoiceOffMode && !useRealVoice 
+    };
+
+    if (isVoiceOffMode) {
+        debugBody.debug_llm_provider = document.getElementById("debug-llm-provider")?.value || null;
+        debugBody.debug_llm_model = document.getElementById("debug-llm-model")?.value || null;
+        debugBody.debug_tts_provider = document.getElementById("debug-tts-provider")?.value || null;
+        
+        // 422エラー対策: 数値変換を行い、無効な場合はnullをセット
+        const speakerId = parseInt(document.getElementById("debug-sakura-speaker")?.value);
+        debugBody.debug_sakura_speaker_id = isNaN(speakerId) ? null : speakerId;
+
+        debugBody.debug_edge_voice = document.getElementById("debug-edge-voice")?.value || null;
+        
+        // Edge-TTS用の符号付きパラメータ生成 (0% -> +0% の修正)
+        const pitchVal = document.getElementById("debug-edge-pitch")?.value || 0;
+        debugBody.debug_edge_pitch = (pitchVal >= 0 ? "+" : "") + pitchVal + "Hz";
+        const rateVal = document.getElementById("debug-edge-rate")?.value || 0;
+        debugBody.debug_edge_rate = (rateVal >= 0 ? "+" : "") + rateVal + "%";
+    }
+
     let isSuccess = false;
     try {
         const response = await fetch("chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                message: userText, 
-                character_id: CONFIG.avatar_set,
-                history: chatContext,
-                skip_tts: isVoiceOffMode 
-            })
+            body: JSON.stringify(debugBody)
         });
         
         if (!response.ok) {
-            // 429: レートリミット
             if (response.status === 429) {
                 const aiTime = getTimestamp();
                 const index = historyData.length;
-                // レートリミットエラーを履歴に追加してボタンを表示可能にする
                 historyData.push({ 
                     reply: CONFIG.api_ratelimit.msg, 
                     aiTime: aiTime, 
@@ -109,7 +135,6 @@ async function fetchChat(userText, userTime, container = null) {
                 playLocalAudio(CONFIG.api_ratelimit.wav, CONFIG.api_ratelimit.emotion || "disgusted", null, CONFIG.api_ratelimit.msg); 
                 return; 
             }
-            // 500: API側のエラー
             if (response.status === 500) {
                 toggleErrorBanner(true);
             }
@@ -139,15 +164,12 @@ async function fetchChat(userText, userTime, container = null) {
         
     } catch (error) {
         console.error("Chat fetch error:", error);
-        
         if (isSuccess) return;
 
         const aiTime = getTimestamp();
-        // リトライ処理
         if (currentRetryCount < CONFIG.max_retry_count) {
             currentRetryCount++;
             const index = historyData.length;
-            // リトライ時の文言も履歴に保存してボタンを表示
             historyData.push({ 
                 reply: CONFIG.api_retry.msg, 
                 aiTime: aiTime, 
@@ -163,7 +185,6 @@ async function fetchChat(userText, userTime, container = null) {
         } else {
             currentRetryCount = 0;
             const index = historyData.length;
-            // 最終的な失敗を履歴に追加してからボタンを表示
             historyData.push({ 
                 reply: CONFIG.api_failure.msg, 
                 aiTime: aiTime, 

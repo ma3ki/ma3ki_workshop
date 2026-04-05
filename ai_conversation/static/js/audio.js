@@ -8,6 +8,14 @@ let resetEmotionTimeout = null;
 // iOS Safari対策: 単一のAudioインスタンスを使い回す
 const globalAudioInstance = new Audio();
 
+function unlockAudio() {
+    // 【重要】無音再生の前に、前回の再生イベントリスナーを解除して口パクのフライングを防ぐ
+    globalAudioInstance.onplay = null;
+    globalAudioInstance.onended = null;
+    globalAudioInstance.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA== ";
+    globalAudioInstance.play().catch(() => {});
+}
+
 function updateAvatar() {
     const safeEmotion = currentEmotion || "trouble";
     let eyeState = isBlinking ? "close" : "open";
@@ -29,6 +37,10 @@ function updateAvatar() {
 function startMouthAnimation() {
     if (resetEmotionTimeout) clearTimeout(resetEmotionTimeout);
     isSpeaking = true;
+    
+    // 二重起動防止：既存のインターバルがあればクリアする
+    if (mouthInterval) clearInterval(mouthInterval);
+    
     mouthInterval = setInterval(() => {
         isMouthOpen = !isMouthOpen;
         updateAvatar();
@@ -39,6 +51,7 @@ function stopMouthAnimation(shouldResetButtons = true) {
     isSpeaking = false;
     isMouthOpen = false;
     if (mouthInterval) clearInterval(mouthInterval);
+    mouthInterval = null;
     updateAvatar();
     if (shouldResetButtons) {
         resetButtons();

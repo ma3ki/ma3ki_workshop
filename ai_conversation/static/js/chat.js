@@ -4,8 +4,15 @@ let currentRetryCount = 0;
 
 function saveSession() {
     const storageKeyPrefix = CONFIG.avatar_set;
+    
+    // 容量制限対策: localStorage に保存するデータから重い audio_data を除外する
+    const historyToSave = historyData.map(item => {
+        const { audio_data, ...rest } = item;
+        return rest;
+    });
+
     localStorage.setItem(`${storageKeyPrefix}_chat_context`, JSON.stringify(chatContext));
-    localStorage.setItem(`${storageKeyPrefix}_history_data`, JSON.stringify(historyData));
+    localStorage.setItem(`${storageKeyPrefix}_history_data`, JSON.stringify(historyToSave));
 }
 
 function addAiMessageOnly(aiReply, aiTime, shouldSave = true, emotion = "tired", audioData = null) {
@@ -80,6 +87,9 @@ function toggleErrorBanner(show) {
 
 async function fetchChat(userText, userTime, container = null) {
     if (!container) container = createMessagePair(userText, userTime);
+    
+    // ブラウザの音声再生制限を解除するためにアンロック関数を呼び出す
+    unlockAudio();
     
     // 実機音声を使用するかどうかの判定
     const useRealVoice = document.getElementById("debug-use-real-voice")?.checked;
